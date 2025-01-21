@@ -4,6 +4,7 @@ import axios from "axios";
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -12,11 +13,19 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); 
+    setMessage("");  
+
     try {
-      const response = await axios.post("http://127.0.0.1:5000/login", formData);
+      const response = await axios.post(
+        "https://signup-login-woeu.onrender.com/login",
+        formData
+      );
       setMessage(response.data.message);
     } catch (err) {
       setMessage("Login failed. Please try again.");
+    } finally {
+      setLoading(false); 
     }
   };
 
@@ -40,8 +49,11 @@ const Login = () => {
           onChange={handleChange}
           required
         />
-        <button type="submit">Login</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Logging In..." : "Login"}
+        </button>
       </form>
+      {loading && <p>Loading, please wait...</p>}
       {message && <p>{message}</p>}
     </div>
   );

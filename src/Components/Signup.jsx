@@ -10,6 +10,7 @@ const Signup = () => {
     confirmPassword: "",
   });
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,11 +24,19 @@ const Signup = () => {
       return;
     }
 
+    setLoading(true); 
+    setMessage(""); 
+
     try {
-      const response = await axios.post("http://127.0.0.1:5000/signup", formData);
+      const response = await axios.post(
+        "https://signup-login-woeu.onrender.com/signup",
+        formData
+      );
       setMessage(response.data.message);
     } catch (err) {
       setMessage("Signup failed. Please try again.");
+    } finally {
+      setLoading(false); 
     }
   };
 
@@ -75,8 +84,11 @@ const Signup = () => {
           onChange={handleChange}
           required
         />
-        <button type="submit">Sign Up</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Signing Up..." : "Sign Up"}
+        </button>
       </form>
+      {loading && <p>Loading, please wait...</p>}
       {message && <p>{message}</p>}
     </div>
   );
