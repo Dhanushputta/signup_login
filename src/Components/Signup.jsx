@@ -24,7 +24,7 @@ const Signup = () => {
     }
 
     try {
-      const response = await axios.post("http://127.0.0.1:5000/signup", formData);
+      const response = await axios.post("https://signup-login-yygb.onrender.com/signup", formData);
       setMessage(response.data.message);
     } catch (err) {
       setMessage("Signup failed. Please try again.");
