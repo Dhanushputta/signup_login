@@ -1,9 +1,12 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
 from flask_cors import CORS
+import csv
+from io import StringIO
 
+# Initialize Flask app and extensions
 app = Flask(__name__)
 CORS(app)
 
@@ -11,10 +14,10 @@ CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize Extensions
+# Initialize extensions
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
-migrate = Migrate(app, db)  # Initialize Flask-Migrate
+migrate = Migrate(app, db)
 
 # User Model
 class User(db.Model):
@@ -88,6 +91,30 @@ def login():
         return jsonify({"message": "Login successful!"}), 200
 
     return jsonify({"message": "Invalid email or password!"}), 401
+
+# Route to Download User Data as CSV
+@app.route('/download-users', methods=['GET'])
+def download_users():
+    # Query all user data
+    users = User.query.all()
+
+    # Create an in-memory CSV file
+    csv_data = StringIO()
+    csv_writer = csv.writer(csv_data)
+
+    # Write CSV headers
+    csv_writer.writerow(['ID', 'First Name', 'Last Name', 'Email'])
+
+    # Write user data rows
+    for user in users:
+        csv_writer.writerow([user.id, user.first_name, user.last_name, user.email])
+
+    # Prepare the response
+    csv_data.seek(0)  # Move to the start of the CSV data
+    response = Response(csv_data.getvalue(), mimetype='text/csv')
+    response.headers['Content-Disposition'] = 'attachment; filename=users.csv'
+
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True)
