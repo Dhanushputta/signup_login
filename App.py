@@ -4,9 +4,9 @@ from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
 from flask_cors import CORS
 
-
 app = Flask(__name__)
 CORS(app)
+
 # Database Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -38,17 +38,22 @@ def signup():
     password = data.get('password')
     confirm_password = data.get('confirmPassword')
 
+    # Validate required fields
     if not all([first_name, last_name, email, password, confirm_password]):
         return jsonify({"message": "All fields are required!"}), 400
 
+    # Check if passwords match
     if password != confirm_password:
         return jsonify({"message": "Passwords do not match!"}), 400
 
+    # Check if email already exists
     if User.query.filter_by(email=email).first():
         return jsonify({"message": "Email already exists!"}), 400
 
+    # Hash the password
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
+    # Create a new user
     new_user = User(
         first_name=first_name,
         last_name=last_name,
@@ -56,10 +61,13 @@ def signup():
         password_hash=hashed_password
     )
 
-    db.session.add(new_user)
-    db.session.commit()
-
-    return jsonify({"message": "Signup successful!"}), 201
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({"message": "Signup successful!"}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": "An error occurred. Please try again later."}), 500
 
 # Route for Login
 @app.route('/login', methods=['POST'])
@@ -69,11 +77,13 @@ def login():
     email = data.get('email')
     password = data.get('password')
 
+    # Validate required fields
     if not all([email, password]):
         return jsonify({"message": "Email and password are required!"}), 400
 
     user = User.query.filter_by(email=email).first()
 
+    # Validate user credentials
     if user and bcrypt.check_password_hash(user.password_hash, password):
         return jsonify({"message": "Login successful!"}), 200
 

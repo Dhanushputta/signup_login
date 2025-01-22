@@ -34,7 +34,7 @@ const Signup = () => {
       );
       setMessage(response.data.message);
     } catch (err) {
-      setMessage("Signup failed. Please try again.");
+      setMessage("Signup failed. Email already exists!.");
     } finally {
       setLoading(false); 
     }

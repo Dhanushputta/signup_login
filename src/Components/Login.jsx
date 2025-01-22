@@ -23,7 +23,7 @@ const Login = () => {
       );
       setMessage(response.data.message);
     } catch (err) {
-      setMessage("Login failed. Please try again.");
+      setMessage("Login failed. Incorrect password or Email.");
     } finally {
       setLoading(false); 
     }
